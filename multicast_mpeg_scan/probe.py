@@ -1,70 +1,77 @@
-from threading import Thread
-from subprocess import Popen, PIPE
-from json import loads
+import subprocess
+import json
+import sys
 
-class Probe():
-    def __init__(self, media_location, debug=False):
+
+class Probe:
+    def __init__(self, media_location, timeout=10, debug=False):
         self.result = {}
         self.media_location = media_location
+        self.timeout = timeout
         self.debug = debug
+        self.process = None
+        self.error = None
 
-    def run(self, timeout=10):
-        probe_thread = Thread(
-            target = self.run_ffprobe,
-            name = 'probe_thread - ' + self.media_location
-        )
-        probe_thread.start()
-        probe_thread.join(timeout)
-        if probe_thread.is_alive():
-            self.process.terminate()
-            if self.debug: print 'Timeout exceeded: ' + self.media_location
-        else:
-            return self.result
+    def run(self):
+        if self.debug:
+            print(
+                'Running probe for: ' + self.media_location,
+                file=sys.stderr
+            )
+        analyze_command = [
+            'ffprobe', '-hide_banner', '-show_programs',
+            '-show_streams', '-print_format', 'json', '-show_error',
+            self.media_location
+        ]
 
-    def run_ffprobe(self):
-        analyze_command = ['ffprobe', '-hide_banner', '-show_programs',
-                          '-show_streams', '-print_format', 'json', 
-                          # These might help sometimes (?)
-                          # '-fflags', 'discardcorrupt',
-                          # '-err_detect', 'ignore_err',
-                          # '-resync_size', '2147483647',
-                          # '-max_ts_probe', '2147483647',
-                          self.media_location]
+        try:
+            self.process = subprocess.Popen(
+                analyze_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                bufsize=1048576
+            )
+            self.process.wait(self.timeout)
+        except subprocess.TimeoutExpired:
+            self.error = 'Timeout exceeded'
+            return
 
-        self.process = Popen(analyze_command, stdout=PIPE, stderr=PIPE)
-        self.process.wait()
-        analyze_command_output, analyze_command_errors = \
-            self.process.communicate()
-        exitcode = self.process.returncode
+        if self.process.returncode:
+            self.error = self.process.stderr.read()
+            return
 
-        if exitcode:
-            if self.debug:
-                print 'ffprobe exited with code: ' + str(exitcode) + \
-                    ', location: ' + self.media_location + \
-                    ', error: ' + str(analyze_command_errors)
-        else:
-            try:
-                analyze_object = loads(analyze_command_output)
-            except ValueError:
-                if self.debug:
-                    print 'Failure when parsing JSON, location: ' + \
-                        self.media_location
-                return
-            try:
-                # Channel name
-                self.result['name'] = \
-                    analyze_object['programs'][0]['tags']['service_name']
-                # Audio track and subtitle languages
-                for stream in analyze_object['programs'][0]['streams']:
-                    if stream.get('tags') and stream['tags']['language']:
-                        stream_type = stream['codec_type']
-                        language = stream['tags']['language']
-                        if not self.result.get(stream_type):
-                            self.result[stream_type] = []
-                        self.result[stream_type].append(language)
-                # Stream location
-                self.result['location'] = self.media_location
-            except:
-                if self.debug:
-                    print 'Failure to find data, location: ' + \
-                        self.media_location
+        try:
+            analyze_object = json.load(self.process.stdout)
+        except ValueError:
+            self.error = 'Failure parsing JSON'
+            return
+
+        # Channel name
+        self.result['name'] = \
+            analyze_object['programs'][0]['tags']['service_name']
+
+        # Stream metadata
+        for stream in analyze_object['programs'][0]['streams']:
+            stream_type = stream['codec_type']
+
+            # Video
+            if stream_type == 'video':
+                self.result['video'] = {
+                    'width':  stream['width'],
+                    'height': stream['height'],
+                    'codec':  stream['codec_name']
+                }
+
+            # Audio and subtitles
+            if stream.get('tags') and stream['tags']['language']:
+                language = stream['tags']['language']
+                if not self.result.get(stream_type):
+                    self.result[stream_type] = []
+                self.result[stream_type].append(
+                    {language: stream['codec_name']}
+                )
+
+        # Stream location
+        self.result['location'] = self.media_location
+
+        return self.result

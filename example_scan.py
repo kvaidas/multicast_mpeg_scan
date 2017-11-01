@@ -1,12 +1,11 @@
-from multicast_mpeg_scan.scan import Scan
 import json
+import sys
 
-probe_list = []
-for ip in range(1,255):
-    probe_list.append( 'http://stream_ip_part.' + str(ip) + ':1234' )
+from multicast_mpeg_scan.scan import Scan
 
-scanner = Scan(probe_list, timeout=10, concurrency=4)
-result = scanner.run()
+scanner = Scan(concurrency=4, timeout=15, debug=True)
+for ip in range(1, 255):
+    scanner.add('http://224.0.0.' + str(ip) + ':1234')
 
-result_file=open('results_json.txt','w')
-json.dump(result, result_file, indent=4)
+scan_results = scanner.run()
+json.dump(scan_results, fp=sys.stdout, indent=4)
