@@ -3,7 +3,7 @@ from json import loads
 
 
 class Probe:
-    def __init__(self, media_location, timeout=10, debug=False):
+    def __init__(self, media_location, timeout=60, debug=False):
         self.result = {}
         self.media_location = media_location
         self.timeout = timeout
