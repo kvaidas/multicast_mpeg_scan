@@ -1,6 +1,5 @@
 import subprocess
-import json
-import sys
+from json import loads
 
 
 class Probe:
@@ -14,34 +13,32 @@ class Probe:
 
     def run(self):
         if self.debug:
-            print(
-                'Running probe for: ' + self.media_location,
-                file=sys.stderr
-            )
+            print('Running probe for: ' + self.media_location)
         analyze_command = [
             'ffprobe', '-hide_banner', '-show_programs',
             '-show_streams', '-print_format', 'json', '-show_error',
+            '-read_intervals', '%+30', '-timeout', '5',
             self.media_location
         ]
 
         try:
-            self.process = subprocess.Popen(
+            self.process = subprocess.run(
                 analyze_command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                timeout=self.timeout,
                 bufsize=1048576
             )
-            self.process.wait(self.timeout)
         except subprocess.TimeoutExpired:
             self.error = 'Timeout exceeded'
             return
 
         if self.process.returncode:
-            self.error = self.process.stderr.read()
+            self.error = self.process.stderr.decode('utf-8')
             return
 
         try:
-            analyze_object = json.load(self.process.stdout)
+            analyze_object = loads(self.process.stdout.decode('utf-8'))
         except ValueError:
             self.error = 'Failure parsing JSON'
             return
