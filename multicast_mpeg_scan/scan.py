@@ -19,20 +19,20 @@ class Scan:
         self.addresses[url] = None
 
     def __run_probe(self, probe):
-        start_time = time()
 
         try:
+            start_time = time()
             probe_returncode, probe_stdout, probe_stderr = probe.run()
             with self.lock:
                 self.addresses[probe.media_location] = {
                     'returncode': probe_returncode,
                     'stdout': loads(probe_stdout),
-                    'stderr': probe_stderr
+                    'stderr': probe_stderr,
+                    'time': time() - start_time
                 }
             if self.debug:
-                print('Probe took: ' + str(time() - start_time))
                 if probe_returncode:
-                    print('Exit code: ' + probe_returncode)
+                    print('Probe failed. Exit code: ' + probe_returncode)
                     print('stdout: ' + probe_stdout)
                     print('stderr: ' + probe_stderr)
 
