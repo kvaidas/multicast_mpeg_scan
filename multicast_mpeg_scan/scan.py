@@ -60,4 +60,4 @@ class Scan:
     # noinspection PyUnusedLocal
     def stop(self, signum, frame):
         print('Stopping scan...')
-        self.__executor.shutdown()
+        self.__executor.shutdown(wait=True)
