@@ -44,7 +44,10 @@ class Scan:
             print(exception)
 
     def run(self):
-        signal.signal(signal.CTRL_C_EVENT, self.stop)
+        signal.signal(
+            signal.SIGINT,
+            self.stop
+        )
         for url in self.addresses:
             self.__executor.submit(
                 self.__run_probe,
@@ -54,6 +57,7 @@ class Scan:
 
         return self.addresses
 
-    def stop(self):
+    # noinspection PyUnusedLocal
+    def stop(self, signum, frame):
         print('Stopping scan...')
         self.__executor.shutdown()
