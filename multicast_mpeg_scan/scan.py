@@ -27,7 +27,7 @@ class Scan:
                     'returncode': probe_returncode,
                     'stdout': loads(probe_stdout),
                     'stderr': probe_stderr,
-                    'time': time() - start_time
+                    'time': round(time() - start_time, 3)
                 }
 
         except subprocess.TimeoutExpired as exception:
