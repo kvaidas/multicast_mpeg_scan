@@ -1,51 +1,51 @@
+import subprocess
+from time import time
 from concurrent.futures import ThreadPoolExecutor
-from queue import Queue
-from re import findall
-import sys
-
 from multicast_mpeg_scan.probe import Probe
 
 
 class Scan:
-    def __init__(self, concurrency=4, timeout=10, debug=False):
-        self.addresses = []
-        self.results = Queue()
+    def __init__(self, concurrency=4, timeout=30, debug=False):
+        self.addresses = {}
 
         self.concurrency = concurrency
         self.timeout = timeout
         self.debug = debug
 
     def add(self, url):
-        self.addresses.append(url)
+        self.addresses[url] = None
 
-    def __get_probe_result(self, probe):
-        result = probe.run()
-        if result is not None:
-            self.results.put(result)
-        elif self.debug:
-            print(
-                'Error probing ' + probe.media_location + ': ' + probe.error,
-                file=sys.stderr
-            )
+    def __run_probe(self, probe):
+        start_time = time()
+
+        try:
+            probe_returncode, probe_stdout, probe_stderr = probe.run()
+            self.addresses[probe.url] = {
+                'returncode': probe_returncode,
+                'stdout': probe_stdout,
+                'stderr': probe_stderr
+            }
+            if self.debug:
+                print('Probe took: ' + str(start_time - time()))
+                if probe_returncode:
+                    print('Exit code: ' + probe_returncode)
+                    print('stdout: ' + probe_stdout)
+                    print('stderr: ' + probe_stderr)
+
+        except subprocess.TimeoutExpired as exception:
+            print(exception)
+        except ValueError as exception:
+            print(exception)
+        except Exception as exception:
+            print(exception)
 
     def run(self):
         executor = ThreadPoolExecutor(max_workers=self.concurrency)
         for url in self.addresses:
-            probe = Probe(url, timeout=self.timeout, debug=self.debug)
             executor.submit(
-                self.__get_probe_result,
-                probe
+                self.__run_probe,
+                Probe(url, timeout=self.timeout, debug=self.debug)
             )
         executor.shutdown(wait=True)
 
-        # Return the gathered results
-        scan_result = []
-        while not self.results.empty():
-            scan_result.append(
-                self.results.get()
-            )
-        scan_result = sorted(
-            scan_result,
-            key=lambda result: findall('[0-9]+|[^0-9]+', result['location'])
-        )
-        return scan_result
+        return self.addresses
