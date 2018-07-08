@@ -3,7 +3,6 @@ import subprocess
 
 class Probe:
     def __init__(self, media_location, timeout=30, debug=False):
-        self.result = {}
         self.media_location = media_location
         self.timeout = timeout
         self.debug = debug
