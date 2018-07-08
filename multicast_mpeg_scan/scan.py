@@ -7,11 +7,11 @@ from multicast_mpeg_scan.probe import Probe
 
 
 class Scan:
-    def __init__(self, concurrency=4, timeout=30):
+    def __init__(self, concurrency=4, timeout=30, verbose=False):
         self.addresses = {}
-
         self.concurrency = concurrency
         self.timeout = timeout
+        self.verbose = verbose
         self.lock = Lock()
 
     def add(self, url):
@@ -29,6 +29,11 @@ class Scan:
                     'stderr': probe_stderr,
                     'time': round(time() - start_time, 3)
                 }
+            if self.verbose:
+                print(
+                    'Probe for "' + probe.media_location + '" completed in ' +
+                    self.addresses[probe.media_location]['time'] + '.'
+                )
 
         except subprocess.TimeoutExpired as exception:
             print(exception)
