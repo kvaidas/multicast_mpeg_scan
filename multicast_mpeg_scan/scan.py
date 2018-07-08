@@ -1,5 +1,4 @@
 import subprocess
-import signal
 from json import loads
 from threading import Lock
 from time import time
@@ -44,10 +43,6 @@ class Scan:
             print(exception)
 
     def run(self):
-        signal.signal(
-            signal.SIGINT,
-            self.stop
-        )
         for url in self.addresses:
             self.__executor.submit(
                 self.__run_probe,
@@ -56,8 +51,3 @@ class Scan:
         self.__executor.shutdown(wait=True)
 
         return self.addresses
-
-    # noinspection PyUnusedLocal
-    def stop(self, signum, frame):
-        print('Stopping scan...')
-        self.__executor.shutdown(wait=True)
