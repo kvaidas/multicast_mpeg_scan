@@ -27,7 +27,7 @@ class Scan:
                     'returncode': probe_returncode,
                     'stdout': probe_stdout,
                     'stderr': probe_stderr
-            }
+                }
             if self.debug:
                 print('Probe took: ' + str(start_time - time()))
                 if probe_returncode:
