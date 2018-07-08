@@ -1,4 +1,5 @@
 import subprocess
+import signal
 from json import loads
 from threading import Lock
 from time import time
@@ -9,7 +10,7 @@ from multicast_mpeg_scan.probe import Probe
 class Scan:
     def __init__(self, concurrency=4, timeout=30, verbose=False):
         self.addresses = {}
-        self.concurrency = concurrency
+        self.__executor = ThreadPoolExecutor(max_workers=concurrency)
         self.timeout = timeout
         self.verbose = verbose
         self.lock = Lock()
@@ -43,12 +44,16 @@ class Scan:
             print(exception)
 
     def run(self):
-        executor = ThreadPoolExecutor(max_workers=self.concurrency)
+        signal.signal(signal.CTRL_C_EVENT, self.stop)
         for url in self.addresses:
-            executor.submit(
+            self.__executor.submit(
                 self.__run_probe,
                 Probe(url, timeout=self.timeout)
             )
-        executor.shutdown(wait=True)
+        self.__executor.shutdown(wait=True)
 
         return self.addresses
+
+    def stop(self):
+        print('Stopping scan...')
+        self.__executor.shutdown()
