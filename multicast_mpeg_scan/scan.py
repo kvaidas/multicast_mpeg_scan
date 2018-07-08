@@ -1,4 +1,5 @@
 import subprocess
+from threading import Lock
 from time import time
 from concurrent.futures import ThreadPoolExecutor
 from multicast_mpeg_scan.probe import Probe
@@ -11,6 +12,7 @@ class Scan:
         self.concurrency = concurrency
         self.timeout = timeout
         self.debug = debug
+        self.lock = Lock()
 
     def add(self, url):
         self.addresses[url] = None
@@ -20,10 +22,11 @@ class Scan:
 
         try:
             probe_returncode, probe_stdout, probe_stderr = probe.run()
-            self.addresses[probe.url] = {
-                'returncode': probe_returncode,
-                'stdout': probe_stdout,
-                'stderr': probe_stderr
+            with self.lock:
+                self.addresses[probe.url] = {
+                    'returncode': probe_returncode,
+                    'stdout': probe_stdout,
+                    'stderr': probe_stderr
             }
             if self.debug:
                 print('Probe took: ' + str(start_time - time()))
