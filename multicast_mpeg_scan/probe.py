@@ -7,8 +7,6 @@ class Probe:
         self.media_location = media_location
         self.timeout = timeout
         self.debug = debug
-        self.process = None
-        self.error = None
 
     def run(self):
         analyze_command = [
@@ -19,7 +17,7 @@ class Probe:
             self.media_location
         ]
 
-        self.process = subprocess.run(
+        probe_process = subprocess.run(
             analyze_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -28,7 +26,7 @@ class Probe:
         )
 
         return (
-            self.process.returncode,
-            self.process.stdout.decode('utf-8'),
-            self.process.stderr.decode('utf-8')
-            )
+            probe_process.returncode,
+            probe_process.stdout.decode('utf-8'),
+            probe_process.stderr.decode('utf-8')
+        )
