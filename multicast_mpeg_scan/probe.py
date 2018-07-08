@@ -2,10 +2,9 @@ import subprocess
 
 
 class Probe:
-    def __init__(self, media_location, timeout=30, debug=False):
+    def __init__(self, media_location, timeout=30):
         self.media_location = media_location
         self.timeout = timeout
-        self.debug = debug
 
     def run(self):
         analyze_command = [
