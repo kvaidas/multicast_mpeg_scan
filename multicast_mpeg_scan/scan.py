@@ -1,4 +1,5 @@
 import subprocess
+from json import loads
 from threading import Lock
 from time import time
 from concurrent.futures import ThreadPoolExecutor
@@ -25,11 +26,11 @@ class Scan:
             with self.lock:
                 self.addresses[probe.media_location] = {
                     'returncode': probe_returncode,
-                    'stdout': probe_stdout,
+                    'stdout': loads(probe_stdout),
                     'stderr': probe_stderr
                 }
             if self.debug:
-                print('Probe took: ' + str(start_time - time()))
+                print('Probe took: ' + str(time() - start_time))
                 if probe_returncode:
                     print('Exit code: ' + probe_returncode)
                     print('stdout: ' + probe_stdout)
