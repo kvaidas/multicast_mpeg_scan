@@ -33,7 +33,7 @@ class Scan:
             if self.verbose:
                 print(
                     'Probe for "' + probe.media_location + '" completed in ' +
-                    self.addresses[probe.media_location]['time'] + '.'
+                    str(self.addresses[probe.media_location]['time']) + '.'
                 )
 
         except subprocess.TimeoutExpired as exception:

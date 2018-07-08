@@ -28,7 +28,7 @@ class Probe:
         if self.verbose:
             print(
                 'Ended probe for "' + self.media_location +
-                '". Exit code: ' + probe_process.returncode
+                '". Exit code: ' + str(probe_process.returncode)
             )
 
         return (
