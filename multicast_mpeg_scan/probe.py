@@ -1,5 +1,4 @@
 import subprocess
-from json import loads
 
 
 class Probe:
