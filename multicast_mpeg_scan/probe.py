@@ -2,9 +2,10 @@ import subprocess
 
 
 class Probe:
-    def __init__(self, media_location, timeout=30):
+    def __init__(self, media_location, timeout=30, verbose=False):
         self.media_location = media_location
         self.timeout = timeout
+        self.verbose = verbose
 
     def run(self):
         analyze_command = [
@@ -15,6 +16,8 @@ class Probe:
             self.media_location
         ]
 
+        if self.verbose:
+            print('Starting probe for "' + self.media_location + '".')
         probe_process = subprocess.run(
             analyze_command,
             stdout=subprocess.PIPE,
@@ -22,6 +25,11 @@ class Probe:
             timeout=self.timeout,
             bufsize=1048576
         )
+        if self.verbose:
+            print(
+                'Ended probe for "' + self.media_location +
+                '". Exit code: ' + probe_process.returncode
+            )
 
         return (
             probe_process.returncode,
