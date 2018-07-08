@@ -23,7 +23,7 @@ class Scan:
         try:
             probe_returncode, probe_stdout, probe_stderr = probe.run()
             with self.lock:
-                self.addresses[probe.url] = {
+                self.addresses[probe.media_location] = {
                     'returncode': probe_returncode,
                     'stdout': probe_stdout,
                     'stderr': probe_stderr
