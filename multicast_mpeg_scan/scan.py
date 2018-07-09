@@ -22,12 +22,13 @@ class Scan:
         try:
             start_time = time()
             probe_returncode, probe_stdout, probe_stderr = probe.run()
+            probe_time = round(time() - start_time, 3)
             with self.lock:
                 self.addresses[probe.media_location] = {
                     'returncode': probe_returncode,
                     'stdout': loads(probe_stdout),
                     'stderr': probe_stderr,
-                    'time': round(time() - start_time, 3)
+                    'time': probe_time
                 }
             if self.verbose:
                 print(
