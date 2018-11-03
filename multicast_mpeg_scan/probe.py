@@ -1,4 +1,6 @@
 import subprocess
+import sys
+from time import time
 
 
 class Probe:
@@ -12,12 +14,15 @@ class Probe:
             'ffprobe', '-hide_banner', '-show_programs',
             '-show_streams', '-print_format', 'json', '-show_error',
             '-read_intervals', '%+' + str(self.timeout-5),
-            '-timeout', '5',
             self.media_location
         ]
 
         if self.verbose:
-            print('Starting probe for "' + self.media_location + '".')
+            print(
+                'Starting probe for "' + self.media_location + '".',
+                file=sys.stderr
+            )
+        start_time = time()
         probe_process = subprocess.run(
             analyze_command,
             stdout=subprocess.PIPE,
@@ -26,10 +31,21 @@ class Probe:
             bufsize=1048576
         )
         if self.verbose:
+            probe_time = round(time() - start_time, 3)
             print(
                 'Ended probe for "' + self.media_location +
-                '". Exit code: ' + str(probe_process.returncode)
+                '" in ' + str(probe_time) + 's. Exit code: ' + str(probe_process.returncode),
+                file=sys.stderr
             )
+            if probe_process.returncode:
+                print(
+                    'stdout: ' + probe_process.stdout.decode('utf-8'),
+                    file=sys.stderr
+                )
+                print(
+                    'stderr: ' + probe_process.stderr.decode('utf-8'),
+                    file=sys.stderr
+                )
 
         return (
             probe_process.returncode,
