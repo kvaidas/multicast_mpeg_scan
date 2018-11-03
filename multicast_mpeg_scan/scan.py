@@ -1,9 +1,11 @@
 import subprocess
 import sys
+from datetime import timedelta
 from json import loads
 from threading import Lock
 from concurrent.futures import ThreadPoolExecutor
 from multicast_mpeg_scan.probe import Probe
+from time import time
 
 
 class Scan:
@@ -27,19 +29,27 @@ class Scan:
                     'stdout': loads(probe_stdout),
                     'stderr': probe_stderr
                 }
-
         except subprocess.TimeoutExpired as exception:
             if self.verbose:
                 print(exception, file=sys.stderr)
+            self.addresses[probe.media_location]['stderr'] = 'Process timed out'
         except Exception as exception:
             print(exception)
 
     def run(self):
+        start_time = time()
         for url in self.addresses:
             self.__executor.submit(
                 self.__run_probe,
                 Probe(url, timeout=self.timeout, verbose=self.verbose)
             )
         self.__executor.shutdown(wait=True)
+        if self.verbose:
+            scan_time = round(time() - start_time)
+            readable_time = timedelta(scan_time)
+            print(
+                'Scanned ' + str(len(self.addresses)) + ' URLs in ' + str(readable_time) + '.',
+                file=sys.stderr
+            )
 
         return self.addresses
