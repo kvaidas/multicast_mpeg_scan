@@ -11,9 +11,11 @@ class Probe:
 
     def run(self):
         analyze_command = [
-            'ffprobe', '-hide_banner', '-show_programs',
-            '-show_streams', '-print_format', 'json', '-show_error',
-            '-read_intervals', '%+' + str(self.timeout-5),
+            'ffprobe', '-hide_banner',
+            '-show_programs',
+            '-show_streams',
+            '-print_format', 'json',
+            '-show_error',
             self.media_location
         ]
 
