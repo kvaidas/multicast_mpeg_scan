@@ -46,7 +46,7 @@ class Scan:
         self.__executor.shutdown(wait=True)
         if self.verbosity >= 1:
             scan_time = round(time() - start_time)
-            readable_time = timedelta(scan_time)
+            readable_time = timedelta(seconds=scan_time)
             print(
                 'Scanned ' + str(len(self.addresses)) + ' URLs in ' + str(readable_time) + '.',
                 file=sys.stderr
