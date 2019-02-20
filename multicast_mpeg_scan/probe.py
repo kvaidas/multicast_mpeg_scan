@@ -4,10 +4,10 @@ from time import time
 
 
 class Probe:
-    def __init__(self, media_location, timeout=30, verbose=False):
+    def __init__(self, media_location, timeout=30, verbosity=1):
         self.media_location = media_location
         self.timeout = timeout
-        self.verbose = verbose
+        self.verbosity = verbosity
 
     def run(self):
         analyze_command = [
@@ -19,7 +19,7 @@ class Probe:
             self.media_location
         ]
 
-        if self.verbose:
+        if self.verbosity >= 2:
             print(
                 'Starting probe for "' + self.media_location + '".',
                 file=sys.stderr
@@ -32,7 +32,7 @@ class Probe:
             timeout=self.timeout,
             bufsize=1048576
         )
-        if self.verbose:
+        if self.verbosity >= 2:
             probe_time = round(time() - start_time, 3)
             print(
                 'Ended probe for "' + self.media_location +
