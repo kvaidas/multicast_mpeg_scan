@@ -1,28 +1,72 @@
+#!/usr/bin/env python3
+
 import json
 import sys
+import argparse
 from datetime import datetime
 from multicast_mpeg_scan.scan import Scan
 
+# Parse cli arguments
+arg_parser = argparse.ArgumentParser(
+    description='Scan URLs for MPEG stream information'
+)
+arg_parser.add_argument(
+    '-f', '--file',
+    help='Filename where scan data is persisted'
+)
+arg_parser.add_argument(
+    '-p', '--patterns',
+    required=True,
+    nargs='+',
+    help='Pattern(s) to scan'
+)
+arg_parser.add_argument(
+    '-c', '--concurrency',
+    default=1,
+    type=int,
+    help='How many probes to run in parallel'
+)
+arg_parser.add_argument(
+    '-t', '--timeout',
+    help='Timeout for a single probe'
+)
+arg_parser.add_argument(
+    '-v', '--verbosity',
+    default=1,
+    help='How much information to display during the scan'
+)
+arguments = arg_parser.parse_args()
+
 # Build URL list
-urls = []
-for ip in range(0, 255):
-    urls.append('udp://224.0.0.' + str(ip) + ':1234')
+scanner = Scan(
+    concurrency = arguments.concurrency,
+    timeout = arguments.timeout,
+    verbosity = arguments.verbosity
+)
+
+for pattern_spec in arguments.patterns:
+    pattern_spec = pattern_spec.split('@')
+    pattern = pattern_spec[0]
+    iterator = eval(pattern_spec[1])
+    for i in iterator:
+        scanner.add(
+            pattern.format(i)
+        )
 
 # Run the scan
-scanner = Scan(concurrency=4, timeout=30, verbose=True)
-for url in urls:
-    scanner.add(url)
 scan_results = scanner.run()
 
 # Read the channel database
-try:
-    with open('channel_db.json', mode='r') as db_file:
-        db = json.load(db_file)
-except FileNotFoundError:
-    db = {}
+db = {}
+if arguments.file:
+    try:
+        with open(arguments.file, mode='r') as db_file:
+            db = json.load(db_file)
+    except FileNotFoundError:
+        pass
 
 # Update channel data
-for url in urls:
+for url in scanner.addresses.keys():
     # Skip if there is no data for the scan altogether
     if not scan_results[url]:
         print('Error: scan data for "' + url + '" was not present.', file=sys.stderr)
@@ -53,9 +97,13 @@ for url in urls:
     db[url]['scan_data'] = scan_results[url]
 
 # Save channel data to file
-with open('channel_db.json', mode='w') as db_file:
-    json.dump(
-        db,
-        db_file,
-        indent=4
-    )
+if arguments.file:
+    db_file = open(arguments.file, mode='w')
+else:
+    db_file = sys.stdout
+
+json.dump(
+    db,
+    db_file,
+    indent=4
+)
