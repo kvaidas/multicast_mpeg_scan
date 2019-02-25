@@ -54,10 +54,11 @@ if arguments.patterns:
             )
 
 # Build URL list from stdin
-for url in sys.stdin.readlines():
-    scanner.add(
-        url.strip()
-    )
+if not sys.stdin.isatty():
+    for url in sys.stdin.readlines():
+        scanner.add(
+            url.strip()
+        )
 
 # Run the scan
 scan_results = scanner.run()
