@@ -16,7 +16,6 @@ arg_parser.add_argument(
 )
 arg_parser.add_argument(
     '-p', '--patterns',
-    required=True,
     nargs='+',
     help='Pattern(s) to scan'
 )
@@ -37,21 +36,28 @@ arg_parser.add_argument(
 )
 arguments = arg_parser.parse_args()
 
-# Build URL list
 scanner = Scan(
     concurrency = arguments.concurrency,
     timeout = arguments.timeout,
     verbosity = arguments.verbosity
 )
 
-for pattern_spec in arguments.patterns:
-    pattern_spec = pattern_spec.split('@')
-    pattern = pattern_spec[0]
-    iterator = eval(pattern_spec[1])
-    for i in iterator:
-        scanner.add(
-            pattern.format(i)
-        )
+# Build URL list from parameters
+if arguments.patterns:
+    for pattern_spec in arguments.patterns:
+        pattern_spec = pattern_spec.split('@')
+        pattern = pattern_spec[0]
+        iterator = eval(pattern_spec[1])
+        for i in iterator:
+            scanner.add(
+                pattern.format(i)
+            )
+
+# Build URL list from stdin
+for url in sys.stdin.readlines():
+    scanner.add(
+        url.strip()
+    )
 
 # Run the scan
 scan_results = scanner.run()
