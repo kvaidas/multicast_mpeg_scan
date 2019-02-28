@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import traceback
 from datetime import timedelta
 from json import loads
 from threading import Lock
@@ -33,8 +34,8 @@ class Scan:
             if self.verbosity >= 2:
                 print(exception, file=sys.stderr)
             self.addresses[probe.media_location]['stderr'] = 'Process timed out'
-        except Exception as exception:
-            print(exception)
+        except Exception:
+            print(traceback.format_exc())
 
     def run(self):
         start_time = time()
