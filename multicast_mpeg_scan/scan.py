@@ -46,10 +46,28 @@ class Scan:
             )
         self.__executor.shutdown(wait=True)
         if self.verbosity >= 1:
+            # Count scan time
             scan_time = round(time() - start_time)
             readable_time = timedelta(seconds=scan_time)
+
+            # Count successful probes and URLs with name data
+            successful_probes = 0
+            named_channels = 0
+            for url in self.addresses:
+                try:
+                    if not self.addresses[url]['returncode']:
+                        successful_probes += 1
+                except KeyError:
+                    pass
+                try:
+                    self.addresses[url]['stdout']['programs'][0]['tags']['service_name']
+                    named_channels += 1
+                except KeyError:
+                    pass
+
             print(
-                'Scanned ' + str(len(self.addresses)) + ' URLs in ' + str(readable_time) + '.',
+                'Scan completed in ' + str(readable_time) + ' URLs: ' + str(len(self.addresses)) +
+                ' Successful: ' + str(successful_probes) + ' With namedata: ' + str(named_channels),
                 file=sys.stderr
             )
 
