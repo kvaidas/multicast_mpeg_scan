@@ -21,16 +21,19 @@ arg_parser.add_argument(
 )
 arg_parser.add_argument(
     '-c', '--concurrency',
-    default=1,
     type=int,
+    default=1,
     help='How many probes to run in parallel'
 )
 arg_parser.add_argument(
     '-t', '--timeout',
+    type=int,
+    default=10,
     help='Timeout for a single probe'
 )
 arg_parser.add_argument(
     '-v', '--verbosity',
+    type=int,
     default=1,
     help='How much information to display during the scan'
 )
