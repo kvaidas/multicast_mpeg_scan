@@ -6,7 +6,7 @@ This is a tool to scan lists of URLs (to anything that the ffprobe from the ffmp
 This is the help that's also available from the command itself:
 
 ```
-usage: run_survey.py [-h] [-f FILE] [-p PATTERNS [PATTERNS ...]]
+usage: run_survey.py [-h] [-f FILE] [-p PATTERN [PATTERN ...]]
                      [-c CONCURRENCY] [-t TIMEOUT] [-v VERBOSITY]
 
 Scan URLs for MPEG stream information
@@ -14,8 +14,13 @@ Scan URLs for MPEG stream information
 optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Filename where scan data is persisted
-  -p PATTERNS [PATTERNS ...], --patterns PATTERNS [PATTERNS ...]
-                        Pattern(s) to scan
+  -p PATTERN [PATTERN ...], --patterns PATTERN [PATTERN ...]
+                        Pattern(s) to scan in the format of
+                        "foo{:d}bar@iterable" where you can generate multiple
+                        entries to scan by using a Python generator like
+                        "range" and the "{:d}" will be replaced by the
+                        iterated value (refer to Python documentation for
+                        advanced usage)
   -c CONCURRENCY, --concurrency CONCURRENCY
                         How many probes to run in parallel
   -t TIMEOUT, --timeout TIMEOUT

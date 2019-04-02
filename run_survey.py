@@ -17,7 +17,8 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '-p', '--patterns',
     nargs='+',
-    help='Pattern(s) to scan'
+    help='Pattern(s) to scan in the format of "foo{:d}bar@iterable" where you can generate multiple entries to scan by using a Python generator like "range" and the "{:d}" will be replaced by the iterated value (refer to Python documentation for advanced usage)',
+    metavar='PATTERN'
 )
 arg_parser.add_argument(
     '-c', '--concurrency',
