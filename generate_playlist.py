@@ -27,17 +27,11 @@ arguments = arg_parser.parse_args()
 
 # Load stream information
 db = {}
-if not sys.stdin.isatty():
-    db = json.load(sys.stdin)
-elif arguments.input_file:
+if arguments.input_file:
     with open(arguments.input_file) as db_file:
         db = json.load(db_file)
 else:
-    print(
-        'Error: no input.',
-        sys.stderr
-    )
-    exit(1)
+    db = json.load(sys.stdin)
 
 # Setup the output
 if arguments.output_file:
