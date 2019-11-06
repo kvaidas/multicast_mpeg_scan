@@ -31,6 +31,7 @@ if arguments.input_file:
     with open(arguments.input_file) as db_file:
         db = json.load(db_file)
 else:
+    print('Warning: using stdin as input', file=sys.stderr)
     db = json.load(sys.stdin)
 
 # Setup the output
