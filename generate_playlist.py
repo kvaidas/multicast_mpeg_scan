@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import argparse
+import datetime
 
 # Parse cli arguments
 arg_parser = argparse.ArgumentParser(
@@ -23,7 +24,18 @@ arg_parser.add_argument(
     default='xspf',
     help='Which format to output the playlist in'
 )
+arg_parser.add_argument(
+    '-d', '--days',
+    type=int,
+    help='Ignore channels last seen more than days specified'
+)
 arguments = arg_parser.parse_args()
+
+# Date filtering setup
+age_threshold = None
+if arguments.days:
+    age_delta = datetime.timedelta(days=arguments.days)
+    age_threshold = datetime.datetime.now() - age_delta
 
 # Load stream information
 db = {}
@@ -54,6 +66,15 @@ elif arguments.format == 'm3u':
 
 # Iterate over available channels
 for url in db:
+    # Skip channel if it is too old
+    updated_date = datetime.datetime.strptime(
+        db[url]['last_updated'],
+        '%Y-%m-%d %H:%M:%S'
+    )
+    if age_threshold is not None and updated_date < age_threshold:
+        print(db[url], file=sys.stderr)
+        continue
+
     channel_data = db[url]['scan_data']['stdout']
 
     # Use a custom name if set
@@ -61,10 +82,11 @@ for url in db:
         name = channel_data['custom_name']
     else:
         if channel_data.get('programs') is None or \
+           len(channel_data['programs']) == 0 or \
            channel_data['programs'][0].get('tags') is None or \
            channel_data['programs'][0]['tags'].get('service_name') is None:
             print(
-                'Name data not found for "' + url + '".',
+                'Data not found for "' + url + '".',
                 file=sys.stderr
             )
             name = 'Unknown'
