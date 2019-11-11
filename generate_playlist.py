@@ -83,7 +83,7 @@ for url in db:
         print('    </track>', file=playlist_file)
     elif arguments.format == 'm3u':
         print('#EXTINF:-1,' + name, file=playlist_file)
-        print(url)
+        print(url, file=playlist_file)
 
 # Print playlist footer
 if arguments.format == 'xspf':
