@@ -60,12 +60,12 @@ class Scan:
                 try:
                     if not self.addresses[url]['returncode']:
                         successful_probes += 1
-                except KeyError:
+                except (KeyError, TypeError):
                     pass
                 try:
                     self.addresses[url]['stdout']['programs'][0]['tags']['service_name']
                     named_channels += 1
-                except KeyError:
+                except (KeyError, IndexError, TypeError):
                     pass
 
             print(
