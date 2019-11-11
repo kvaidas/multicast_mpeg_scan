@@ -23,12 +23,15 @@ class Scan:
     def __run_probe(self, probe):
 
         try:
+            start_time = time()
             probe_returncode, probe_stdout, probe_stderr = probe.run()
+            scan_time = round(time() - start_time, 3)
             with self.lock:
                 self.addresses[probe.media_location] = {
                     'returncode': probe_returncode,
                     'stdout': loads(probe_stdout),
-                    'stderr': probe_stderr
+                    'stderr': probe_stderr,
+                    'scan_time': scan_time
                 }
         except subprocess.TimeoutExpired as exception:
             if self.verbosity >= 2:
